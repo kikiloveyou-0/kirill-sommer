@@ -310,3 +310,19 @@ html.no-scroll { overflow: hidden; }
 .video.player.ready:-webkit-full-screen .stage { width: 100%; }
 .project .preview { opacity: .01; }
 .project .preview.on { opacity: 1; }
+
+/* fullscreen: pure black, no borders or padding, controls float over the film and hide when idle */
+.video.player.ready:fullscreen,
+.video.player.ready.pseudo-fs,
+.video.player.ready:-webkit-full-screen { padding: 0 !important; background: #000 !important; border: 0 !important; display: block; position: relative; }
+.video.player.ready.pseudo-fs { position: fixed; }
+.video.player.ready:fullscreen .stage,
+.video.player.ready.pseudo-fs .stage,
+.video.player.ready:-webkit-full-screen .stage { position: absolute; inset: 0; width: 100%; height: 100%; border: 0 !important; background: #000; aspect-ratio: auto; }
+.video.player.ready:fullscreen .controls,
+.video.player.ready.pseudo-fs .controls,
+.video.player.ready:-webkit-full-screen .controls { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 14px 3vw 18px; background: rgba(0, 0, 0, .65); z-index: 2; transition: opacity .3s; }
+.video.player.ready.idle .controls { opacity: 0; pointer-events: none; }
+.video.player.ready.idle { cursor: none; }
+.player:fullscreen::backdrop { background: #000; }
+.player:-webkit-full-screen::backdrop { background: #000; }

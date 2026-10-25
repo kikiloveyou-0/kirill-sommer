@@ -148,6 +148,7 @@
     function setPseudo(on) {
       pseudo = on;
       box.classList.toggle('pseudo-fs', on);
+      if (typeof wake === 'function') wake();
       document.documentElement.classList.toggle('no-scroll', on);
       fsLabel();
     }
@@ -164,53 +165,46 @@
       var ex = document.exitFullscreen || document.webkitExitFullscreen;
       if (ex) { var r = ex.call(document); if (r && r.catch) r.catch(noop); }
     }
-    fs.addEventListener('click', function () { if (isFull()) exitFull(); else enterFull(); });
+    var idleTimer = null;
+    function wake() {
+      box.classList.remove('idle');
+      clearTimeout(idleTimer);
+      if (isFull()) idleTimer = setTimeout(function () { box.classList.add('idle'); }, 2500);
+    }
+    ['mousemove', 'touchstart', 'keydown', 'click'].forEach(function (ev) { box.addEventListener(ev, wake); });
+    function fsChange() { fsLabel(); wake(); }
+    fs.addEventListener('click', function () { if (isFull()) exitFull(); else enterFull(); setTimeout(wake, 50); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pseudo) setPseudo(false); });
-    document.addEventListener('fullscreenchange', fsLabel);
-    document.addEventListener('webkitfullscreenchange', fsLabel);
+    document.addEventListener('fullscreenchange', fsChange);
+    document.addEventListener('webkitfullscreenchange', fsChange);
   }
 
   /* ---------- hover preview on the motion picture page ---------- */
   function buildPreview(card) {
     var v = parse(card.getAttribute('data-preview'));
     var cover = card.querySelector('.cover');
-    if (!v || !cover || !window.Vimeo || reduceMotion || !canHover) return;
+    if (!v || !cover || !window.Vimeo || reduceMotion) return;
     card.classList.add('has-preview');
 
-    // load the film in the background right away, paused, so a hover can start it instantly
+    // the film plays by itself, muted and looping, whether or not the cursor is on it
     var f = document.createElement('iframe');
     f.className = 'preview';
     f.tabIndex = -1;
     f.setAttribute('aria-hidden', 'true');
     f.allow = 'autoplay';
-    f.src = embed(v, ['muted=1', 'loop=1', 'autoplay=0']);
+    f.src = embed(v, ['muted=1', 'loop=1', 'autoplay=1']);
     cover.appendChild(f);
     var p = new Vimeo.Player(f);
-    var active = false, timer = null;
 
-    function reveal() { if (active) f.classList.add('on'); }
+    function reveal() { f.classList.add('on'); }
     p.on('playing', reveal);
     p.on('timeupdate', function (e) { if (e.seconds > 0) reveal(); });
     p.on('error', function (e) { if (window.console) console.warn('vimeo preview error', e); });
-
-    function start() {
-      active = true;
+    p.ready().then(function () {
       p.setMuted(true).catch(noop);
       p.play().catch(function (e) { if (window.console) console.warn('preview play blocked', e); });
-      clearTimeout(timer);
-      timer = setTimeout(reveal, 900);        // show it even if the playing event is slow
-    }
-    function stop() {
-      active = false;
-      clearTimeout(timer);
-      f.classList.remove('on');
-      p.pause().catch(noop);
-      p.setCurrentTime(0).catch(noop);
-    }
-    card.addEventListener('mouseenter', start);
-    card.addEventListener('mouseleave', stop);
-    card.addEventListener('focus', start);
-    card.addEventListener('blur', stop);
+    });
+    setTimeout(reveal, 1500);     // show it even if the playing event is slow
   }
 
   document.querySelectorAll('.player[data-vimeo]').forEach(buildPlayer);
