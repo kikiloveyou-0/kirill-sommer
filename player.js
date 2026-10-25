@@ -191,6 +191,7 @@
     if (!v || !cover || !window.Vimeo || reduceMotion) return;
     card.classList.add('has-preview');
 
+    function init() {
     // the film plays by itself, muted and looping, whether or not the cursor is on it
     var f = document.createElement('iframe');
     f.className = 'preview';
@@ -210,6 +211,14 @@
       p.play().catch(function (e) { if (window.console) console.warn('preview play blocked', e); });
     });
     setTimeout(reveal, 1500);     // show it even if the playing event is slow
+    }
+
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); init(); }
+      }, { rootMargin: '300px' });
+      io.observe(card);
+    } else { init(); }
   }
 
   document.querySelectorAll('.player[data-vimeo]').forEach(buildPlayer);
