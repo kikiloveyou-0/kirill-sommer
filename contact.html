@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>contact · kirill</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <a href="index.html">kirill</a>
+  <a href="motion-picture.html">motion picture</a>
+  <a href="photo.html">photo</a>
+  <a href="about.html">about</a>
+  <a href="contact.html" aria-current="page">contact</a>
+</header>
+
+<main>
+  <h2>Get in touch.</h2>
+
+  <div class="doorway" id="doorway">
+    <div class="outside" id="outside">
+      <p><a href="mailto:you@example.com">you@example.com</a></p>
+      <p><a href="https://vimeo.com/">Vimeo</a></p>
+      <p><a href="https://instagram.com/">Instagram</a></p>
+    </div>
+    <button class="door" id="door" type="button" aria-expanded="false" aria-controls="outside" aria-label="open the front door to show contact details"></button>
+  </div>
+  <p class="hint">open the door</p>
+</main>
+
+<script>
+  (function () {
+    var doorway = document.getElementById('doorway');
+    var door = document.getElementById('door');
+    door.addEventListener('click', function () {
+      doorway.classList.add('opened');
+      door.setAttribute('aria-expanded', 'true');
+      var first = document.querySelector('#outside a');
+      if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, 700);
+    });
+  })();
+</script>
+</body>
+</html>

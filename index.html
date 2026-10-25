@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kirill sommer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="locked">
+
+<button id="splash" class="warn" type="button" aria-label="warning: this page contains flashing images. enter the site"><span class="warning">warning<br>this page contains flashing images</span><img src="enter.jpg" alt=""><small>this page flashes · click to enter</small></button>
+<script>
+  // skip the flashing screen if it was already passed in this visit
+  try {
+    if (sessionStorage.getItem('entered')) {
+      document.getElementById('splash').remove();
+      document.body.classList.remove('locked');
+    }
+  } catch (e) {}
+</script>
+<noscript><style>#splash { display: none; } body.locked { overflow: auto; }</style></noscript>
+
+<main class="home">
+  <h1>kirill sommer</h1>
+  <nav>
+    <a href="motion-picture.html">motion picture</a>
+    <a href="photo.html">photo</a>
+    <a href="about.html">about</a>
+    <a href="contact.html">contact</a>
+  </nav>
+</main>
+
+<script>
+  (function () {
+    var splash = document.getElementById('splash');
+    if (!splash) return;
+    splash.focus();
+    // warning first, then the flashing starts after three seconds
+    setTimeout(function () { splash.classList.remove('warn'); }, 3000);
+    var cutting = false;
+    splash.addEventListener('click', function () {
+      if (cutting || splash.classList.contains('warn')) return;
+      cutting = true;
+      splash.classList.add('cut');   // hard cut to black, flashing stops
+      try { sessionStorage.setItem('entered', '1'); } catch (e) {}
+      setTimeout(function () {       // hold the black, then show the site
+        splash.remove();
+        document.body.classList.remove('locked');
+        window.scrollTo(0, 0);
+      }, 900);
+    });
+  })();
+</script>
+</body>
+</html>
