@@ -93,6 +93,11 @@
       if (!started && !reduceMotion) say('the video has not started. in vimeo, set this video to be embeddable on this domain (settings → privacy → where can this be embedded), then reload');
     }, 8000);
 
+    // size the player to the film's own shape so fullscreen can sit it on black, with no empty space inside Vimeo's frame
+    Promise.all([p.getVideoWidth(), p.getVideoHeight()]).then(function (d) {
+      if (d[0] && d[1]) box.style.setProperty('--ar', (d[0] / d[1]).toFixed(4));
+    }).catch(noop);
+
     p.getDuration().then(function (d) { duration = d; time.textContent = '0:00 / ' + fmt(d); }).catch(noop);
     p.ready().then(function () {
       if (!reduceMotion) p.play().catch(noop);

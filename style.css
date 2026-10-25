@@ -334,3 +334,18 @@ iframe { color-scheme: normal; background: transparent; }
 .video.player.ready:fullscreen .controls,
 .video.player.ready.pseudo-fs .controls,
 .video.player.ready:-webkit-full-screen .controls { background: rgba(0, 0, 0, .88); }
+
+/* fullscreen: the film sits centred at its own shape on black, so any spare screen space is plain black */
+.video.player.ready:fullscreen .stage iframe,
+.video.player.ready.pseudo-fs .stage iframe,
+.video.player.ready:-webkit-full-screen .stage iframe {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: min(100%, calc(100vh * var(--ar, 1.7778)));
+  height: min(100%, calc(100vw / var(--ar, 1.7778)));
+  transform: translate(-50%, -50%);
+}
+.video.player.ready:fullscreen .controls,
+.video.player.ready.pseudo-fs .controls,
+.video.player.ready:-webkit-full-screen .controls { padding: 6px 3vw 8px; }
