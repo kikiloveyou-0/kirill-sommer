@@ -326,3 +326,11 @@ html.no-scroll { overflow: hidden; }
 .video.player.ready.idle { cursor: none; }
 .player:fullscreen::backdrop { background: #000; }
 .player:-webkit-full-screen::backdrop { background: #000; }
+
+/* the page declares a dark color scheme; an embedded page that doesn't match it gets an opaque white
+   backdrop, which showed as white bars above and below the film in fullscreen */
+iframe { color-scheme: normal; background: transparent; }
+.player .stage, .player .stage iframe { background: #000; }
+.video.player.ready:fullscreen .controls,
+.video.player.ready.pseudo-fs .controls,
+.video.player.ready:-webkit-full-screen .controls { background: rgba(0, 0, 0, .88); }
