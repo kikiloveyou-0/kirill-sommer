@@ -185,11 +185,12 @@
   }
 
   /* ---------- thumbnails on the motion picture page ----------
-     1. a still image shows straight away (covers/<name>.jpg, or Vimeo's own thumbnail as a fallback)
-     2. the film fades in over it only once it is really playing, so there is never a black box or spinner
-     3. thumbnails start two at a time, nearest the top first
-     4. if covers/<name>.mp4 exists (a short muted loop), that plays instead of loading the Vimeo player,
-        which is much lighter and faster */
+     For each project, in this order:
+       1. covers/<name>.gif   a short, mushy animated GIF. It is just an image, so it appears as fast as any picture
+                              and nothing else needs to load. This is the fast path.
+       2. covers/<name>.jpg   a still image, then the film fades in over it (covers/<name>.mp4 loop if there is one,
+                              otherwise Vimeo's player), started two at a time
+       3. Vimeo's own thumbnail as the still, if there is no jpg either                                          */
   var queue = [], running = 0, MAX = 2;
   function pump() {
     while (running < MAX && queue.length) {
@@ -203,88 +204,95 @@
     return m && m[1];
   }
 
-  function buildPoster(card, cover, url, v) {
-    function addImg(src) {
-      var im = document.createElement('img');
-      im.alt = '';
-      im.style.opacity = '0';
-      im.style.transition = 'opacity .4s';
-      im.onload = function () { im.style.opacity = '1'; };
-      im.src = src;
-      cover.insertBefore(im, cover.firstChild);
-    }
-    function fromVimeo() {
-      var key = 'vimeo-poster-' + v.id;
-      try { var hit = localStorage.getItem(key); if (hit) { addImg(hit); return; } } catch (e) {}
-      if (!window.fetch) return;
-      fetch('https://vimeo.com/api/oembed.json?width=1280&url=' + encodeURIComponent(url))
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          if (!d || !d.thumbnail_url) return;
-          try { localStorage.setItem(key, d.thumbnail_url); } catch (e) {}
-          addImg(d.thumbnail_url);
-        }).catch(noop);
-    }
-    var img = cover.querySelector('img');
-    if (!img) { fromVimeo(); return; }
-    if (img.complete && img.naturalWidth === 0) { fromVimeo(); return; }
-    img.addEventListener('error', fromVimeo);
+  function tryImage(src, ok, fail) {
+    var im = new Image();
+    im.onload = function () { ok(im); };
+    im.onerror = function () { if (fail) fail(); };
+    im.src = src;
   }
 
   function buildPreview(card) {
     var url = card.getAttribute('data-preview');
     var v = parse(url);
     var cover = card.querySelector('.cover');
-    if (!v || !cover) return;
-    buildPoster(card, cover, url, v);
-    if (!window.Vimeo || reduceMotion) return;
-    card.classList.add('has-preview');
     var slug = slugOf(card);
+    if (!v || !cover || !slug) return;
 
-    function start(done) {
-      var finished = false;
-      function finish() { if (!finished) { finished = true; done(); } }
-      setTimeout(finish, 3000);
-
-      function vimeoPreview() {
-        var f = document.createElement('iframe');
-        f.className = 'preview';
-        f.tabIndex = -1;
-        f.setAttribute('aria-hidden', 'true');
-        f.allow = 'autoplay';
-        f.src = embed(v, ['muted=1', 'loop=1', 'autoplay=1']);
-        cover.appendChild(f);
-        var p = new Vimeo.Player(f);
-        function reveal() { f.classList.add('on'); finish(); }
-        p.on('playing', reveal);
-        p.on('timeupdate', function (e) { if (e.seconds > 0) reveal(); });
-        p.on('error', function (e) { if (window.console) console.warn('vimeo preview error', e); finish(); });
-        p.ready().then(function () {
-          p.setMuted(true).catch(noop);
-          p.play().catch(noop);
-        });
-      }
-
-      if (!slug) { vimeoPreview(); return; }
-      var vid = document.createElement('video');
-      vid.className = 'preview';
-      vid.muted = true; vid.loop = true; vid.autoplay = true; vid.playsInline = true;
-      vid.setAttribute('playsinline', ''); vid.setAttribute('aria-hidden', 'true');
-      vid.preload = 'auto';
-      vid.addEventListener('playing', function () { vid.classList.add('on'); finish(); });
-      vid.addEventListener('error', function () { vid.remove(); vimeoPreview(); });
-      vid.src = 'covers/' + slug + '.mp4';
-      cover.appendChild(vid);
-      var pr = vid.play(); if (pr && pr.catch) pr.catch(noop);
+    function show(im) {
+      im.alt = '';
+      im.style.opacity = '0';
+      im.style.transition = 'opacity .35s';
+      cover.insertBefore(im, cover.firstChild);
+      requestAnimationFrame(function () { requestAnimationFrame(function () { im.style.opacity = '1'; }); });
     }
 
-    function enqueue() { queue.push(start); pump(); }
-    if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (entries) {
-        if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); enqueue(); }
-      }, { rootMargin: '150px' });
-      io.observe(card);
-    } else { enqueue(); }
+    function vimeoPoster() {
+      var key = 'vimeo-poster-' + v.id;
+      try { var hit = localStorage.getItem(key); if (hit) { tryImage(hit, show); return; } } catch (e) {}
+      if (!window.fetch) return;
+      fetch('https://vimeo.com/api/oembed.json?width=1280&url=' + encodeURIComponent(url))
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d || !d.thumbnail_url) return;
+          try { localStorage.setItem(key, d.thumbnail_url); } catch (e) {}
+          tryImage(d.thumbnail_url, show);
+        }).catch(noop);
+    }
+
+    function startFilm() {
+      if (!window.Vimeo || reduceMotion) return;
+      card.classList.add('has-preview');
+
+      function start(done) {
+        var finished = false;
+        function finish() { if (!finished) { finished = true; done(); } }
+        setTimeout(finish, 3000);
+
+        function vimeoPreview() {
+          var f = document.createElement('iframe');
+          f.className = 'preview';
+          f.tabIndex = -1;
+          f.setAttribute('aria-hidden', 'true');
+          f.allow = 'autoplay';
+          f.src = embed(v, ['muted=1', 'loop=1', 'autoplay=1']);
+          cover.appendChild(f);
+          var p = new Vimeo.Player(f);
+          function reveal() { f.classList.add('on'); finish(); }
+          p.on('playing', reveal);
+          p.on('timeupdate', function (e) { if (e.seconds > 0) reveal(); });
+          p.on('error', function (e) { if (window.console) console.warn('vimeo preview error', e); finish(); });
+          p.ready().then(function () { p.setMuted(true).catch(noop); p.play().catch(noop); });
+        }
+
+        var vid = document.createElement('video');
+        vid.className = 'preview';
+        vid.muted = true; vid.loop = true; vid.autoplay = true; vid.playsInline = true;
+        vid.setAttribute('playsinline', ''); vid.setAttribute('aria-hidden', 'true');
+        vid.preload = 'auto';
+        vid.addEventListener('playing', function () { vid.classList.add('on'); finish(); });
+        vid.addEventListener('error', function () { vid.remove(); vimeoPreview(); });
+        vid.src = 'covers/' + slug + '.mp4';
+        cover.appendChild(vid);
+        var pr = vid.play(); if (pr && pr.catch) pr.catch(noop);
+      }
+
+      function enqueue() { queue.push(start); pump(); }
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); enqueue(); }
+        }, { rootMargin: '150px' });
+        io.observe(card);
+      } else { enqueue(); }
+    }
+
+    function stillThenFilm() {
+      tryImage('covers/' + slug + '.jpg', show, vimeoPoster);
+      startFilm();
+    }
+
+    // visitors who asked for reduced motion get a still, never an animated GIF
+    if (reduceMotion) { tryImage('covers/' + slug + '.jpg', show, vimeoPoster); return; }
+    tryImage('covers/' + slug + '.gif', show, stillThenFilm);   // gif found: nothing else is loaded
   }
 
   document.querySelectorAll('.player[data-vimeo]').forEach(buildPlayer);
