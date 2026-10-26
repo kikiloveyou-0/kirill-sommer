@@ -224,7 +224,7 @@
     var url = card.getAttribute('data-preview');
     var v = parse(url);
     var cover = card.querySelector('.cover');
-    var slug = slugOf(card);
+    var slug = card.getAttribute('data-cover') || slugOf(card);
     if (!v || !cover || !slug) return;
 
     function show(im) {
