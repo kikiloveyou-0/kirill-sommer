@@ -30,6 +30,9 @@ body.locked { overflow: hidden; }
   line-height: .95;
   letter-spacing: -.04em;
   margin-bottom: 3vh;
+  font-weight: 300;
+  transform: scaleX(.86);
+  transform-origin: center;
 }
 .home nav {
   display: flex;
