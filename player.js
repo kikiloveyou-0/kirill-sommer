@@ -197,6 +197,9 @@
        2. covers/<name>.jpg   a still image, then the film fades in over it (covers/<name>.mp4 loop if there is one,
                               otherwise Vimeo's player), started two at a time
        3. Vimeo's own thumbnail as the still, if there is no jpg either                                          */
+  /* Set to true to let covers without a gif or mp4 load Vimeo's player in the background.
+     It works, but loading eleven players is slow and visible, so it is off. */
+  var VIMEO_COVER_PLAYERS = false;
   var queue = [], running = 0, MAX = 2;
   function pump() {
     while (running < MAX && queue.length) {
@@ -246,8 +249,7 @@
     }
 
     function startFilm() {
-      if (!window.Vimeo || reduceMotion) return;
-      card.classList.add('has-preview');
+      if (reduceMotion) return;
 
       function start(done) {
         var finished = false;
@@ -263,7 +265,7 @@
           f.src = embed(v, ['muted=1', 'loop=1', 'autoplay=1']);
           cover.appendChild(f);
           var p = new Vimeo.Player(f);
-          function reveal() { f.classList.add('on'); finish(); }
+          function reveal() { f.classList.add('on'); card.classList.add('has-preview'); finish(); }
           p.on('playing', reveal);
           p.on('timeupdate', function (e) { if (e.seconds > 0) reveal(); });
           p.on('error', function (e) { if (window.console) console.warn('vimeo preview error', e); finish(); });
@@ -287,8 +289,11 @@
         vid.muted = true; vid.loop = true; vid.autoplay = true; vid.playsInline = true;
         vid.setAttribute('playsinline', ''); vid.setAttribute('aria-hidden', 'true');
         vid.preload = 'auto';
-        vid.addEventListener('playing', function () { vid.classList.add('on'); finish(); });
-        vid.addEventListener('error', function () { vid.remove(); vimeoPreview(); });
+        vid.addEventListener('playing', function () { vid.classList.add('on'); card.classList.add('has-preview'); finish(); });
+        vid.addEventListener('error', function () {
+          vid.remove();
+          if (VIMEO_COVER_PLAYERS && window.Vimeo) vimeoPreview(); else finish();
+        });
         vid.src = 'covers/' + slug + '.mp4';
         cover.appendChild(vid);
         var pr = vid.play(); if (pr && pr.catch) pr.catch(noop);
