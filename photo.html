@@ -22,6 +22,7 @@
     <figure><img src="photos/film-3e7e4dc3.jpg" alt="" loading="lazy"><figcaption>taken on medium format film</figcaption></figure>
     <figure><img src="photos/film-ff08e0b7.jpg" alt="" loading="lazy"><figcaption>taken on medium format film</figcaption></figure>
     <figure><img src="photos/film-456c7568.jpg" alt="" loading="lazy"><figcaption>taken on medium format film</figcaption></figure>
+    <figure><img src="photos/film-IMG_8581.jpg" alt="" loading="lazy"><figcaption>taken on medium format film</figcaption></figure>
     <figure><img src="photos/iphone-2026-04-22.jpg" alt="" loading="lazy"><figcaption>2026 · taken on iphone</figcaption></figure>
     <figure><img src="photos/iphone-2026-05-30a.jpg" alt="" loading="lazy"><figcaption>2026 · taken on iphone</figcaption></figure>
     <figure><img src="photos/iphone-2026-05-30b.jpg" alt="" loading="lazy"><figcaption>2026 · taken on iphone</figcaption></figure>
@@ -31,6 +32,46 @@
     <figure><img src="photos/iphone-2026-09-16.jpg" alt="" loading="lazy"><figcaption>2026 · taken on iphone</figcaption></figure>
   </div>
 </main>
+
+<div id="lb" hidden>
+  <button id="lb-prev" type="button" aria-label="previous">&#8592;</button>
+  <img id="lb-img" alt="">
+  <p id="lb-cap"></p>
+  <button id="lb-next" type="button" aria-label="next">&#8594;</button>
+  <button id="lb-close" type="button" aria-label="close">close</button>
+</div>
+<script>
+(function () {
+  var figs = Array.prototype.slice.call(document.querySelectorAll('.photos figure'));
+  var lb = document.getElementById('lb'), img = document.getElementById('lb-img'), cap = document.getElementById('lb-cap');
+  var i = 0;
+  function show(n) {
+    i = (n + figs.length) % figs.length;
+    img.src = figs[i].querySelector('img').getAttribute('src');
+    cap.textContent = figs[i].querySelector('figcaption').textContent;
+  }
+  function open(n) { show(n); lb.hidden = false; document.body.style.overflow = 'hidden'; }
+  function close() { lb.hidden = true; document.body.style.overflow = ''; }
+  figs.forEach(function (f, n) { f.addEventListener('click', function () { open(n); }); });
+  document.getElementById('lb-prev').onclick = function (e) { e.stopPropagation(); show(i - 1); };
+  document.getElementById('lb-next').onclick = function (e) { e.stopPropagation(); show(i + 1); };
+  document.getElementById('lb-close').onclick = close;
+  lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
+  document.addEventListener('keydown', function (e) {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowLeft') show(i - 1);
+    else if (e.key === 'ArrowRight') show(i + 1);
+  });
+  var x0 = null;
+  lb.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var d = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(d) > 40) show(i + (d < 0 ? 1 : -1));
+  });
+})();
+</script>
 
 </body>
 </html>
