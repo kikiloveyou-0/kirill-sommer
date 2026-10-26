@@ -349,3 +349,7 @@ iframe { color-scheme: normal; background: transparent; }
 .video.player.ready:fullscreen .controls,
 .video.player.ready.pseudo-fs .controls,
 .video.player.ready:-webkit-full-screen .controls { padding: 6px 3vw 8px; }
+
+/* thumbnails: the film fades in over the still image */
+.project .preview { transition: opacity .6s; object-fit: cover; background: transparent; }
+.project video.preview { display: block; }
