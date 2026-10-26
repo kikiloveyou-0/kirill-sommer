@@ -22,14 +22,15 @@ body.locked { overflow: hidden; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
+  text-align: center;
   padding: 5vh 6vw;
 }
 .home h1 {
   font-size: calc(clamp(28px, 9vw, 110px) * var(--s));
   line-height: .95;
   letter-spacing: -.04em;
-  margin-bottom: calc(3vh + clamp(28px, 9vw, 110px) * var(--s) * .6);
+  margin: 0 0 calc(3vh + clamp(28px, 9vw, 110px) * var(--s) * .6);
   font-weight: 300;
   transform: scale(.86, 1.6);
   transform-origin: center top;
