@@ -356,3 +356,37 @@ iframe { color-scheme: normal; background: transparent; }
 
 /* gif and still covers fill the box; the mushy look is a feature, so let the browser smooth them */
 .project .cover > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* films that are not 16:9 are enlarged until they fill the 16:9 frame; the overflow is cropped */
+.player.sizing .stage iframe { visibility: hidden; }
+.video.player.ready.fit-cover .stage { overflow: hidden; }
+.video.player.ready.fit-cover .stage iframe {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: calc(100% * max(1, var(--ar, 1.7778) / 1.7778));
+  height: calc(100% * max(1, 1.7778 / var(--ar, 1.7778)));
+  transform: translate(-50%, -50%);
+}
+/* fullscreen: the same cropped 16:9 picture, as large as the screen allows, on black */
+.video.player.ready.fit-cover:fullscreen .stage,
+.video.player.ready.fit-cover.pseudo-fs .stage,
+.video.player.ready.fit-cover:-webkit-full-screen .stage {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: min(100%, 177.78vh);
+  height: min(100%, 56.25vw);
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+}
+.video.player.ready.fit-cover:fullscreen .stage iframe,
+.video.player.ready.fit-cover.pseudo-fs .stage iframe,
+.video.player.ready.fit-cover:-webkit-full-screen .stage iframe {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: calc(100% * max(1, var(--ar, 1.7778) / 1.7778));
+  height: calc(100% * max(1, 1.7778 / var(--ar, 1.7778)));
+  transform: translate(-50%, -50%);
+}

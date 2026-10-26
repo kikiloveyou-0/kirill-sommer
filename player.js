@@ -50,6 +50,11 @@
 
     box.innerHTML = '';
     box.classList.add('ready');
+    var fillFrame = box.getAttribute('data-fit') === 'cover';
+    if (fillFrame) {
+      box.classList.add('fit-cover', 'sizing');
+      setTimeout(function () { box.classList.remove('sizing'); }, 2000);   // never leave it hidden
+    }
 
     var stage = el('div', 'stage');
     var iframe = document.createElement('iframe');
@@ -96,6 +101,7 @@
     // size the player to the film's own shape so fullscreen can sit it on black, with no empty space inside Vimeo's frame
     Promise.all([p.getVideoWidth(), p.getVideoHeight()]).then(function (d) {
       if (d[0] && d[1]) box.style.setProperty('--ar', (d[0] / d[1]).toFixed(4));
+      box.classList.remove('sizing');
     }).catch(noop);
 
     p.getDuration().then(function (d) { duration = d; time.textContent = '0:00 / ' + fmt(d); }).catch(noop);
@@ -262,6 +268,18 @@
           p.on('timeupdate', function (e) { if (e.seconds > 0) reveal(); });
           p.on('error', function (e) { if (window.console) console.warn('vimeo preview error', e); finish(); });
           p.ready().then(function () { p.setMuted(true).catch(noop); p.play().catch(noop); });
+          if (card.getAttribute('data-fit') === 'cover') {
+            Promise.all([p.getVideoWidth(), p.getVideoHeight()]).then(function (d) {
+              if (!d[0] || !d[1]) return;
+              var ar = d[0] / d[1], R = 16 / 9;
+              f.style.inset = 'auto';
+              f.style.left = '50%';
+              f.style.top = '50%';
+              f.style.width = (Math.max(1, ar / R) * 100) + '%';
+              f.style.height = (Math.max(1, R / ar) * 100) + '%';
+              f.style.transform = 'translate(-50%, -50%)';
+            }).catch(noop);
+          }
         }
 
         var vid = document.createElement('video');
