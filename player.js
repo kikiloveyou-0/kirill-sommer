@@ -231,7 +231,7 @@
      It works, but loading eleven players is slow and visible, so it is off. */
   var VIMEO_COVER_PLAYERS = false;
   /* Change this number whenever you replace a cover image, so browsers fetch the new file instead of a saved copy. */
-  var COVER_VERSION = '2';
+  var COVER_VERSION = '3';
   var queue = [], running = 0, MAX = 2;
   function pump() {
     while (running < MAX && queue.length) {
