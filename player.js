@@ -76,9 +76,12 @@
     var vol = el('input', 'vol');
     vol.type = 'range'; vol.min = 0; vol.max = 100; vol.value = 100; vol.step = 1;
     vol.setAttribute('aria-label', 'volume');
+    var quality = el('select', 'quality');
+    quality.setAttribute('aria-label', 'quality');
+    quality.style.display = 'none';          // shown once Vimeo lists the available qualities
     var fs = el('button', 'fs', 'fullscreen');
     fs.type = 'button';
-    [pp, seek, time, mute, vol, fs].forEach(function (c) { bar.appendChild(c); });
+    [pp, seek, time, mute, vol, quality, fs].forEach(function (c) { bar.appendChild(c); });
 
     box.appendChild(stage);
     box.appendChild(bar);
@@ -129,6 +132,33 @@
       var t = duration * seek.value / 1000;
       time.textContent = fmt(t) + ' / ' + fmt(duration);
       p.setCurrentTime(t).catch(noop);
+    });
+
+    // quality: lists whatever Vimeo offers for this film (auto, 1080p, 720p...)
+    function loadQualities() {
+      if (!p.getQualities) return;
+      p.getQualities().then(function (list) {
+        if (!list || list.length < 2) return;
+        quality.innerHTML = '';
+        list.forEach(function (q) {
+          var o = document.createElement('option');
+          o.value = q.id;
+          o.textContent = q.label || q.id;
+          quality.appendChild(o);
+        });
+        return p.getQuality().then(function (cur) {
+          if (cur) quality.value = cur;
+        }).catch(noop).then(function () { quality.style.display = ''; });
+      }).catch(noop);
+    }
+    p.ready().then(loadQualities);
+    setTimeout(function () { if (quality.style.display === 'none') loadQualities(); }, 4000);   // some films list qualities late
+    quality.addEventListener('change', function () {
+      p.setQuality(quality.value).catch(function (e) { if (window.console) console.warn('quality not changed', e); });
+    });
+    if (p.on) p.on('qualitychange', function (e) {
+      var id = e && (e.quality || e.id);
+      if (id && quality.querySelector('option[value="' + id + '"]')) quality.value = id;
     });
 
     function showSound() { mute.textContent = muted ? 'sound off' : 'sound on'; }

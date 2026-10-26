@@ -390,3 +390,19 @@ iframe { color-scheme: normal; background: transparent; }
   height: calc(100% * max(1, 1.7778 / var(--ar, 1.7778)));
   transform: translate(-50%, -50%);
 }
+
+/* quality menu, in the same plain style as the other controls */
+.player select.quality {
+  background: #000;
+  color: #fff;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  padding: .35em .3em;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  text-transform: lowercase;
+}
+.player select.quality:hover { background: #fff; color: #000; }
+.player select.quality option { background: #000; color: #fff; }
