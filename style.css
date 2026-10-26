@@ -29,10 +29,10 @@ body.locked { overflow: hidden; }
   font-size: calc(clamp(28px, 9vw, 110px) * var(--s));
   line-height: .95;
   letter-spacing: -.04em;
-  margin-bottom: 3vh;
+  margin-bottom: calc(3vh + clamp(28px, 9vw, 110px) * var(--s) * .6);
   font-weight: 300;
-  transform: scaleX(.86);
-  transform-origin: center;
+  transform: scale(.86, 1.6);
+  transform-origin: center top;
 }
 .home nav {
   display: flex;
