@@ -4,7 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>photo · kirill</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=3">
+<style>
+.photos figure { cursor: pointer; }
+body.lb-open { overflow: hidden; }
+#lb { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 2147483647; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; }
+#lb[hidden] { display: none !important; }
+#lb .win { position: relative; background: #000; border: 1px solid #fff; color: #fff; width: 92vw; height: 90vh; display: flex; flex-direction: column; }
+#lb .bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #fff; padding: 0 12px; height: 40px; flex: none; font-size: 13px; }
+#lb .stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 12px 56px; }
+#lb img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; }
+#lb button { background: none; border: 0; color: #fff; font: inherit; cursor: pointer; padding: 8px; font-size: 13px; }
+#lb .nav { position: absolute; top: 0; bottom: 0; width: 52px; font-size: 22px; }
+#lb-prev { left: 0; } #lb-next { right: 0; }
+</style>
 </head>
 <body>
 
@@ -33,12 +46,15 @@
   </div>
 </main>
 
-<div id="lb" hidden>
-  <button id="lb-prev" type="button" aria-label="previous">&#8592;</button>
-  <img id="lb-img" alt="">
-  <p id="lb-cap"></p>
-  <button id="lb-next" type="button" aria-label="next">&#8594;</button>
-  <button id="lb-close" type="button" aria-label="close">close</button>
+<div id="lb" hidden role="dialog" aria-modal="true" aria-label="photo viewer">
+  <div class="win">
+    <div class="bar"><span id="lb-cap"></span><span><span id="lb-count"></span> <button id="lb-close" type="button" aria-label="close">close</button></span></div>
+    <div class="stage">
+      <button class="nav" id="lb-prev" type="button" aria-label="previous">&#8592;</button>
+      <img id="lb-img" alt="">
+      <button class="nav" id="lb-next" type="button" aria-label="next">&#8594;</button>
+    </div>
+  </div>
 </div>
 <script>
 (function () {
@@ -49,9 +65,10 @@
     i = (n + figs.length) % figs.length;
     img.src = figs[i].querySelector('img').getAttribute('src');
     cap.textContent = figs[i].querySelector('figcaption').textContent;
+    document.getElementById('lb-count').textContent = (i + 1) + ' / ' + figs.length;
   }
-  function open(n) { show(n); lb.hidden = false; document.body.style.overflow = 'hidden'; }
-  function close() { lb.hidden = true; document.body.style.overflow = ''; }
+  function open(n) { show(n); lb.hidden = false; document.body.classList.add('lb-open'); }
+  function close() { lb.hidden = true; document.body.classList.remove('lb-open'); }
   figs.forEach(function (f, n) { f.addEventListener('click', function () { open(n); }); });
   document.getElementById('lb-prev').onclick = function (e) { e.stopPropagation(); show(i - 1); };
   document.getElementById('lb-next').onclick = function (e) { e.stopPropagation(); show(i + 1); };
