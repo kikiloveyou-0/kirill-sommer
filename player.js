@@ -200,6 +200,8 @@
   /* Set to true to let covers without a gif or mp4 load Vimeo's player in the background.
      It works, but loading eleven players is slow and visible, so it is off. */
   var VIMEO_COVER_PLAYERS = false;
+  /* Change this number whenever you replace a cover image, so browsers fetch the new file instead of a saved copy. */
+  var COVER_VERSION = '2';
   var queue = [], running = 0, MAX = 2;
   function pump() {
     while (running < MAX && queue.length) {
@@ -294,7 +296,7 @@
           vid.remove();
           if (VIMEO_COVER_PLAYERS && window.Vimeo) vimeoPreview(); else finish();
         });
-        vid.src = 'covers/' + slug + '.mp4';
+        vid.src = 'covers/' + slug + '.mp4?v=' + COVER_VERSION;
         cover.appendChild(vid);
         var pr = vid.play(); if (pr && pr.catch) pr.catch(noop);
       }
@@ -309,13 +311,13 @@
     }
 
     function stillThenFilm() {
-      tryImage('covers/' + slug + '.jpg', show, vimeoPoster);
+      tryImage('covers/' + slug + '.jpg?v=' + COVER_VERSION, show, vimeoPoster);
       startFilm();
     }
 
     // visitors who asked for reduced motion get a still, never an animated GIF
-    if (reduceMotion) { tryImage('covers/' + slug + '.jpg', show, vimeoPoster); return; }
-    tryImage('covers/' + slug + '.gif', show, stillThenFilm);   // gif found: nothing else is loaded
+    if (reduceMotion) { tryImage('covers/' + slug + '.jpg?v=' + COVER_VERSION, show, vimeoPoster); return; }
+    tryImage('covers/' + slug + '.gif?v=' + COVER_VERSION, show, stillThenFilm);   // gif found: nothing else is loaded
   }
 
   document.querySelectorAll('.player[data-vimeo]').forEach(buildPlayer);
